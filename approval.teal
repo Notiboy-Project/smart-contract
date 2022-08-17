@@ -1,0 +1,386 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l23
+txn OnCompletion
+int OptIn
+==
+bnz main_l19
+txn OnCompletion
+int CloseOut
+==
+bnz main_l18
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l17
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l16
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "pub_notify"
+==
+bnz main_l13
+txna ApplicationArgs 0
+byte "pvt_notify"
+==
+bnz main_l12
+txna ApplicationArgs 0
+byte "verify"
+==
+bnz main_l11
+err
+main_l11:
+callsub isvalid_1
+txn NumAppArgs
+int 2
+==
+&&
+txn NumAccounts
+int 1
+==
+&&
+txna Accounts 1
+global CurrentApplicationID
+app_opted_in
+&&
+callsub iscreator_0
+&&
+txna ApplicationArgs 1
+app_global_get
+len
+int 65
+>=
+&&
+txna ApplicationArgs 1
+app_global_get
+extract 33 32
+txna Accounts 1
+==
+&&
+assert
+callsub markdappverified_8
+return
+main_l12:
+callsub isvalidnotification_3
+assert
+gtxn 1 NumAccounts
+int 1
+==
+assert
+txna Accounts 1
+global CurrentApplicationID
+app_opted_in
+assert
+txna Accounts 1
+txna ApplicationArgs 1
+app_local_del
+txna Accounts 1
+txna ApplicationArgs 1
+txn TxID
+app_local_put
+int 1
+return
+main_l13:
+callsub isvalidnotification_3
+assert
+callsub loadindex_6
+btoi
+int 1
++
+int 16
+%
+itob
+store 0
+load 0
+btoi
+int 0
+==
+bnz main_l15
+main_l14:
+txn Sender
+load 0
+app_local_del
+txn Sender
+load 0
+txn TxID
+app_local_put
+txn Sender
+byte "index"
+load 0
+app_local_put
+int 1
+return
+main_l15:
+int 1
+itob
+store 0
+b main_l14
+main_l16:
+callsub isvalid_1
+assert
+callsub iscreator_0
+return
+main_l17:
+callsub isvalid_1
+assert
+callsub iscreator_0
+return
+main_l18:
+callsub isvalid_1
+assert
+int 0
+return
+main_l19:
+callsub isvalidoptin_2
+assert
+gtxn 1 NumAppArgs
+int 2
+==
+gtxna 1 ApplicationArgs 0
+byte "dapp"
+==
+&&
+bnz main_l22
+callsub registeruser_5
+pop
+main_l21:
+int 1
+return
+main_l22:
+callsub registerdapp1_4
+pop
+b main_l21
+main_l23:
+callsub isvalid_1
+assert
+byte "Creator"
+byte "Deepak"
+app_global_put
+int 1
+return
+
+// is_creator
+iscreator_0:
+txn Sender
+global CreatorAddress
+==
+retsub
+
+// is_valid
+isvalid_1:
+txn RekeyTo
+global ZeroAddress
+==
+retsub
+
+// is_valid_optin
+isvalidoptin_2:
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+global GroupSize
+int 2
+==
+&&
+gtxn 1 TypeEnum
+int appl
+==
+&&
+gtxn 1 OnCompletion
+int OptIn
+==
+&&
+gtxn 0 TypeEnum
+int pay
+==
+&&
+gtxn 0 Receiver
+addr HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUED6DKFD5ZD24PMJ3MVA
+==
+&&
+retsub
+
+// is_valid_notification
+isvalidnotification_3:
+gtxn 1 NumAppArgs
+int 2
+==
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+&&
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+global GroupSize
+int 2
+==
+&&
+gtxn 1 TypeEnum
+int appl
+==
+&&
+gtxn 1 OnCompletion
+int NoOp
+==
+&&
+gtxn 0 TypeEnum
+int pay
+==
+&&
+gtxn 0 Receiver
+addr HZ57J3K46JIJXILONBBZOHX6BKPXEM2VVXNRFSUED6DKFD5ZD24PMJ3MVA
+==
+&&
+gtxn 0 Sender
+byte ":"
+concat
+gtxn 1 Sender
+concat
+gtxna 1 ApplicationArgs 1
+app_global_get
+==
+&&
+gtxn 1 Sender
+global CurrentApplicationID
+app_opted_in
+int 1
+==
+&&
+retsub
+
+// register_dapp1
+registerdapp1_4:
+global CurrentApplicationID
+gtxna 1 ApplicationArgs 1
+app_global_get_ex
+store 2
+store 1
+load 2
+!
+assert
+gtxn 1 NumAppArgs
+int 2
+==
+gtxna 1 ApplicationArgs 0
+byte "dapp"
+==
+&&
+gtxn 0 Amount
+int 1000000
+>=
+&&
+assert
+gtxna 1 ApplicationArgs 1
+gtxn 0 Sender
+byte ":"
+concat
+gtxn 1 Sender
+concat
+app_global_put
+int 1
+return
+
+// register_user
+registeruser_5:
+gtxn 1 NumAppArgs
+int 1
+==
+gtxna 1 ApplicationArgs 0
+byte "user"
+==
+&&
+gtxn 0 Amount
+int 1000000
+>=
+&&
+assert
+int 1
+return
+
+// load_index
+loadindex_6:
+txn Sender
+global CurrentApplicationID
+byte "index"
+app_local_get_ex
+store 4
+store 3
+load 4
+!
+bz loadindex_6_l2
+txn Sender
+byte "index"
+int 0
+itob
+app_local_put
+loadindex_6_l2:
+txn Sender
+byte "index"
+app_local_get
+retsub
+
+// is_verified
+isverified_7:
+txna ApplicationArgs 1
+app_global_get
+len
+int 65
+==
+bnz isverified_7_l4
+txna ApplicationArgs 1
+app_global_get
+len
+int 67
+==
+txna ApplicationArgs 1
+app_global_get
+extract 66 1
+byte "v"
+==
+&&
+bnz isverified_7_l3
+int 0
+b isverified_7_l5
+isverified_7_l3:
+int 1
+b isverified_7_l5
+isverified_7_l4:
+int 0
+isverified_7_l5:
+retsub
+
+// mark_dapp_verified
+markdappverified_8:
+txna ApplicationArgs 1
+app_global_get
+store 5
+callsub isverified_7
+!
+bz markdappverified_8_l2
+txna ApplicationArgs 1
+app_global_del
+txna ApplicationArgs 1
+load 5
+byte ":v"
+concat
+app_global_put
+int 1
+return
+markdappverified_8_l2:
+int 1
+return
