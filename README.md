@@ -3,7 +3,10 @@
 
 Smart contract is written [here](sc.py)
 
-Supports:
+## Workflow
+![image](https://github.com/Notiboy-Project/smart-contract/assets/6995187/215eab33-0014-48d9-bb69-39970b27456e)
+
+## Supports
 1. Sending public notification
 https://github.com/Notiboy-Project/notiboy-sc/blob/842017f3ca35c390cacc128e98726b6cc8f36410/sc.py#L229
 2. Sending personal notification to user
